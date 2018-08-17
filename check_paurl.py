@@ -58,20 +58,40 @@ def check_website(l):
 if __name__ == '__main__':
     sched_Timer = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, 0, 2) + \
                   timedelta(hours=1)
+    retries = 1
     while True:
         now_time = datetime.now()
         if now_time > sched_Timer:
             result = check_website(link)
+            try:
+                if result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
+                    print(sendemail.content)
 
-            if result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
+                    sendemail.sendEmail()
+
+                elif result:
+                    print(sendemail.content)
+                else:
+                    sendemail.sendEmail()
+                    print(sendemail.content)
+            except Exception as e:
+                print("叼咯，发邮件发生异常喔{}".format(e))
+                print("#" * 15)
                 print(sendemail.content)
+                print("#" * 15)
+                print("程序正在试:{}次...".format(retries))
+                sendemail.title = "重试{}".format(retries) + sendemail.title
                 sendemail.sendEmail()
-            elif result:
-                print(sendemail.content)
+                retries += 1
+                if retries > 3:
+                    break
             else:
-                sendemail.sendEmail()
-                print(sendemail.content)
+                retries = 1
+
+
+
             sched_Timer += timedelta(minutes=15)
+            retries = 1
             time.sleep((sched_Timer - now_time).seconds)
         else:
             time.sleep((sched_Timer - now_time).seconds)
