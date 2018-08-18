@@ -3,6 +3,7 @@ import requests, time
 from datetime import datetime,timedelta
 from lxml import html
 import tldextract
+import loginwdcp
 
 """
 cd E:\env\py3scrapy\Scripts
@@ -73,7 +74,8 @@ if __name__ == '__main__':
                     print(sendemail.content)
                 else:
                     sendemail.sendEmail()
-                    print(sendemail.content)
+                    msg = loginwdcp.restart_server()
+                    print(sendemail.title, msg)
             except Exception as e:
                 print("叼咯，发邮件发生异常喔{}".format(e))
                 print("#" * 15)
