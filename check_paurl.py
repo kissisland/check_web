@@ -74,18 +74,20 @@ if __name__ == '__main__':
                     print(sendemail.content)
                 else:
                     sendemail.sendEmail()
-                    msg = loginwdcp.restart_server()
+                    msg = loginwdcp.restart_mysql()
                     print(sendemail.title, msg)
             except Exception as e:
                 print("程序异常:{}".format(e))
                 print("重试：{}次".format(retries))
+                sendemail.title = "重试：{}次".format(retries) + sendemail.title
+                sendemail.sendEmail()
                 retries += 1
                 if retries > 3:
                     break
             else:
                 retries = 1
 
-                sched_Timer += timedelta(minutes=5)
+                sched_Timer += timedelta(minutes=3)
                 time.sleep((sched_Timer - now_time).seconds)
         else:
             time.sleep((sched_Timer - now_time).seconds)
