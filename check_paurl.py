@@ -77,22 +77,16 @@ if __name__ == '__main__':
                     msg = loginwdcp.restart_server()
                     print(sendemail.title, msg)
             except Exception as e:
-                print("叼咯，发邮件发生异常喔{}".format(e))
-                print("#" * 15)
-                print(sendemail.title)
-                print("#" * 15)
-                print("程序正在试:{}次...".format(retries))
-                sendemail.title = "重试{}".format(retries) + sendemail.title
-
+                print("程序异常:{}".format(e))
+                print("重试：{}次".format(retries))
                 retries += 1
                 if retries > 3:
                     break
-                continue
             else:
                 retries = 1
 
-            sched_Timer += timedelta(minutes=5)
-            time.sleep((sched_Timer - now_time).seconds)
+                sched_Timer += timedelta(minutes=5)
+                time.sleep((sched_Timer - now_time).seconds)
         else:
             time.sleep((sched_Timer - now_time).seconds)
 

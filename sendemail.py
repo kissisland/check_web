@@ -34,6 +34,7 @@ def sendEmail():
         print(e)
 
 
+
 def send_email2(SMTP_host, from_account, from_passwd, to_account, subject, content):
     email_client = smtplib.SMTP(SMTP_host)
     email_client.login(from_account, from_passwd)
