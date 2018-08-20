@@ -3,7 +3,7 @@ import requests, time
 from datetime import datetime,timedelta
 from lxml import html
 import tldextract
-import loginwdcp
+import conn_linux
 
 """
 cd E:\env\py3scrapy\Scripts
@@ -73,8 +73,11 @@ if __name__ == '__main__':
                     print(sendemail.content)
                 else:
                     sendemail.sendEmail()
-                    msg = loginwdcp.restart_mysql()
-                    print(sendemail.title, msg)
+
+                    # 远程ssh重启mysql服务器
+                    conn_linux.connected_linux("service mysqld restart")
+
+                    print(sendemail.title, "正在重启mysql....")
             except Exception as e:
                 print("程序异常:{}".format(e))
                 print("重试：{}次".format(retries))
@@ -82,7 +85,11 @@ if __name__ == '__main__':
                 sendemail.sendEmail()
                 retries += 1
                 if retries > 3:
-                    break
+                    print("正在重启服务器....")
+                    conn_linux.connected_linux("reboot")
+                    time.sleep(30)
+                    print("正在开启wdcp服务....")
+                    conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
             else:
                 retries = 1
 
