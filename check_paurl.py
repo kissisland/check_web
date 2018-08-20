@@ -67,7 +67,6 @@ if __name__ == '__main__':
             try:
                 if result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
                     print(sendemail.content)
-
                     sendemail.sendEmail()
 
                 elif result:
