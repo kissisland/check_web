@@ -72,6 +72,7 @@ if __name__ == '__main__':
                 elif result:
                     print(sendemail.content)
                 else:
+                    sendemail.title +="，自动重启mysql"
                     sendemail.sendEmail()
 
                     # 远程ssh重启mysql服务器
@@ -84,7 +85,7 @@ if __name__ == '__main__':
                 sendemail.title = "重试：{}次".format(retries) + sendemail.title
                 sendemail.sendEmail()
                 retries += 1
-                if retries > 3:
+                if retries < 3:
                     print("正在重启服务器....")
                     conn_linux.connected_linux("reboot")
                     time.sleep(30)
