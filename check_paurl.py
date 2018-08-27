@@ -56,10 +56,11 @@ def check_website(l):
         print("check_website发生异常：{}".format(e))
         time.sleep(10)
         return check_website(l)
+
 if __name__ == '__main__':
     sched_Timer = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, 0, 2) + \
                   timedelta(hours=1)
-    retries = 1
+    retries = True
     while True:
         now_time = datetime.now()
         if now_time > sched_Timer:
@@ -72,27 +73,41 @@ if __name__ == '__main__':
                 elif result:
                     print(sendemail.content)
                 else:
-                    sendemail.title +="，自动重启mysql"
+
+                    if retries:
+                        sendemail.title += "，自动重启mysql"
+
+                        # 远程ssh重启mysql服务器
+                        conn_linux.connected_linux("service mysqld restart")
+
+                        retries = False
+
+                        print(sendemail.title, "正在重启mysql....")
+                    else:
+                        sendemail.title += "，重启mysql无效，重启服务器中"
+
+                        print("正在重启服务器....")
+                        conn_linux.connected_linux("reboot")
+                        time.sleep(30)
+                        print("正在开启wdcp服务....")
+                        conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
+
+                        retries = True
                     sendemail.sendEmail()
 
-                    # 远程ssh重启mysql服务器
-                    conn_linux.connected_linux("service mysqld restart")
-
-                    print(sendemail.title, "正在重启mysql....")
             except Exception as e:
                 print("程序异常:{}".format(e))
-                print("重试：{}次".format(retries))
-                sendemail.title = "重试：{}次".format(retries) + sendemail.title
+
+                sendemail.title = "程序异常了," + sendemail.title
+                sendemail.content = sendemail.content + "，{}".format(e)
                 sendemail.sendEmail()
-                retries += 1
-                if retries < 3:
-                    print("正在重启服务器....")
-                    conn_linux.connected_linux("reboot")
-                    time.sleep(30)
-                    print("正在开启wdcp服务....")
-                    conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
+
+                print("正在重启服务器....")
+                conn_linux.connected_linux("reboot")
+                time.sleep(30)
+                print("正在开启wdcp服务....")
+                conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
             else:
-                retries = 1
 
                 sched_Timer += timedelta(minutes=3)
                 time.sleep((sched_Timer - now_time).seconds)
