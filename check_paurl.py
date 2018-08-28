@@ -79,6 +79,11 @@ if __name__ == '__main__':
                     if retries:
                         sendemail.title += "，自动重启mysql"
 
+                        # 查看mysqld的状态，从而优化直接访问网站得知进程挂掉的问题
+                        mysqld_status = conn_linux.connected_linux(comm="systemctl status mysqld.service")
+                        sendemail.content = mysqld_status
+                        print(mysqld_status)
+
                         # 远程ssh重启mysql服务器
                         conn_linux.connected_linux("service mysqld restart")
 
@@ -87,6 +92,11 @@ if __name__ == '__main__':
                         print(sendemail.title, "正在重启mysql....")
                     else:
                         sendemail.title += "，重启mysql无效，重启服务器中"
+
+                        # 查看mysqld的状态，从而优化直接访问网站得知进程挂掉的问题
+                        mysqld_status = conn_linux.connected_linux(comm="systemctl status mysqld.service")
+                        sendemail.content = mysqld_status
+                        print(mysqld_status)
 
                         print("正在重启服务器....")
                         conn_linux.connected_linux("reboot")
