@@ -4,6 +4,7 @@ from datetime import datetime,timedelta
 from lxml import html
 import tldextract
 import conn_linux
+from datetime import datetime
 
 """
 cd E:\env\py3scrapy\Scripts
@@ -39,6 +40,14 @@ python check_paurl.py
 link = "https://www.paurl.com"
 sendemail.content = ''
 sendemail.title = ''
+
+
+def save_log(logtext):
+    this_date_time = datetime.now().strftime("%Y-%m-%d %X")
+    this_date = datetime.now().strftime("%Y-%m-%d")
+    with open('./log/{}_weblog.txt'.format(this_date), 'a', encoding='utf-8') as f:
+        f.write(logtext + " " + this_date_time + "\n")
+
 def check_website(l):
     try:
         res = requests.get(l)
@@ -54,6 +63,7 @@ def check_website(l):
             return True
     except Exception as e:
         print("check_website发生异常：{}".format(e))
+        save_log("check_website发生异常：{}".format(e))
         time.sleep(10)
         return check_website(l)
 
@@ -68,12 +78,15 @@ if __name__ == '__main__':
             try:
                 if result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
                     print(sendemail.content)
+                    save_log(sendemail.content)
                     retries = True
                     sendemail.sendEmail()
+                    save_log("邮件发送成功...")
 
                 elif result:
                     retries = True
                     print(sendemail.content)
+                    save_log(sendemail.content)
                 else:
 
                     if retries:
@@ -83,6 +96,7 @@ if __name__ == '__main__':
                         mysqld_status = conn_linux.connected_linux(comm="systemctl status mysqld.service")
                         sendemail.content = mysqld_status
                         print(mysqld_status)
+                        save_log(mysqld_status)
 
                         # 远程ssh重启mysql服务器
                         conn_linux.connected_linux("service mysqld restart")
@@ -90,6 +104,7 @@ if __name__ == '__main__':
                         retries = False
 
                         print(sendemail.title, "正在重启mysql....")
+                        save_log(sendemail.title + "正在重启mysql....")
                     else:
                         sendemail.title += "，重启mysql无效，重启服务器中"
 
@@ -97,27 +112,34 @@ if __name__ == '__main__':
                         mysqld_status = conn_linux.connected_linux(comm="systemctl status mysqld.service")
                         sendemail.content = mysqld_status
                         print(mysqld_status)
+                        save_log(mysqld_status)
 
                         print("正在重启服务器....")
+                        save_log("正在重启服务器....")
                         conn_linux.connected_linux("reboot")
                         time.sleep(30)
                         print("正在开启wdcp服务....")
+                        save_log("正在开启wdcp服务....")
                         conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
 
                         retries = True
                     sendemail.sendEmail()
+                    save_log("邮件发送成功")
 
             except Exception as e:
                 print("程序异常:{}".format(e))
+                save_log("程序异常:{}".format(e))
 
                 sendemail.title = "程序异常了," + sendemail.title
                 sendemail.content = sendemail.content + "，{}".format(e)
                 sendemail.sendEmail()
 
                 print("正在重启服务器....")
+                save_log("正在重启服务器....")
                 conn_linux.connected_linux("reboot")
                 time.sleep(30)
                 print("正在开启wdcp服务....")
+                save_log("正在开启wdcp服务....")
                 conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
             else:
 
@@ -125,5 +147,4 @@ if __name__ == '__main__':
                 time.sleep((sched_Timer - now_time).seconds)
         else:
             time.sleep((sched_Timer - now_time).seconds)
-
 
