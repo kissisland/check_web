@@ -1,6 +1,7 @@
 import smtplib
 from email.header import Header
 from email.mime.text import MIMEText
+from check_paurl import save_log
 
 # 第三方 SMTP 服务
 mail_host = "smtp.163.com"  # SMTP服务器
@@ -29,7 +30,8 @@ def sendEmail():
         smtpObj = smtplib.SMTP_SSL(mail_host, 465)  # 启用SSL发信, 端口一般是465
         smtpObj.login(mail_user, mail_pass)  # 登录验证
         smtpObj.sendmail(sender, receivers, message.as_string())  # 发送
-        print("mail has been send successfully.")
+        print("邮件发送成功")
+        save_log("邮件发送成功")
     except smtplib.SMTPException as e:
         print(e)
 

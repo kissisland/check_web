@@ -120,8 +120,6 @@ if __name__ == '__main__':
                     save_log(sendemail.content)
                     retries = True
                     sendemail.sendEmail()
-                    save_log("邮件发送成功...")
-
                 elif mysql_result and web_result:
                     retries = True
                     print(sendemail.content)
@@ -129,22 +127,19 @@ if __name__ == '__main__':
                 else:
 
                     if retries:
-                        sendemail.title += "，自动重启mysql"
-
                         # 重启mysql,如无效直接重启服务器
                         if not restart_mysql():
                             reboot_and_wdcp()
+                            sendemail.title += "，重启mysql失败，重启服务器成功"
+                        else:
+                            sendemail.title += "，自动重启mysql成功"
                         retries = False
-
                         sendemail.sendEmail()
-                        save_log("邮件发送成功")
                     else:
                         print("重启服务器都不行，滚犊子了")
                         save_log("重启服务器都不行，滚犊子了")
                         sendemail.title = link + "重启服务器都不行，滚犊子了"
                         sendemail.sendEmail()
-                        print("邮件发送成功")
-                        save_log("邮件发送成功")
                         break
             except Exception as e:
                 print("程序异常:{}".format(e))
