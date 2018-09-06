@@ -48,26 +48,6 @@ def save_log(logtext):
     with open('./log/{}_weblog.txt'.format(this_date), 'a', encoding='utf-8') as f:
         f.write(logtext + " " + this_date_time + "\n")
 
-# 对网站发起请求，然后通过网站反馈的状态码判断是否正常执行
-def check_website(l):
-    try:
-        res = requests.get(l)
-        url = tldextract.extract(l)
-        if res.status_code != 200:
-            sendemail.content = "{}.{}发现以下问题：{}".format(url.domain,url.suffix, res.text)
-            sendemail.title = "{}.{}访问异常了".format(url.domain,url.suffix)
-            return False
-        elif res.status_code == 200:
-            sendemail.content = "{}.{}目前运行正常：{}".format(url.domain,url.suffix,
-                                                        html.fromstring(res.content).xpath("//title/text()")[0])
-            sendemail.title = "{}.{}目前运行正常".format(url.domain,url.suffix)
-            return True
-    except Exception as e:
-        print("check_website发生异常：{}".format(e))
-        save_log("check_website发生异常：{}".format(e))
-        time.sleep(10)
-        return check_website(l)
-
 
 def check_service(comm):
     service_result = conn_linux.connected_linux(comm=comm)
@@ -85,19 +65,20 @@ def restart_mysql(comm='systemctl restart mysqld.service'):
     if not service_result:
         service_result = check_service(comm)
 
-
     suss_text = "mysql重启成功，正在正常运行"
     err_text = "mysql重启失败，没有正常运行"
 
     if service_result:
-        sendemail.title = link + "，" + suss_text
         print(suss_text)
         save_log(suss_text)
+        sendemail.title = link + "，" + suss_text
+        sendemail.sendEmail()
         return True
     else:
-        sendemail.title = link + "，" + err_text
         print(err_text)
         save_log(err_text)
+        sendemail.title = link + "，" + err_text
+        sendemail.sendEmail()
         return False
 
 def reboot_and_wdcp(comm='reboot'):
@@ -120,6 +101,29 @@ def reboot_and_wdcp(comm='reboot'):
     else:
         return True
 
+# 对网站发起请求，然后通过网站反馈的状态码判断是否正常执行
+def check_website(l):
+    try:
+        res = requests.get(l, timeout=4)
+        url = tldextract.extract(l)
+        if res.status_code != 200:
+            sendemail.content = "{}.{}发现以下问题：{}".format(url.domain, url.suffix, res.text)
+            sendemail.title = "{}.{}访问异常了".format(url.domain, url.suffix)
+
+            restart_mysql()
+        elif res.status_code == 200:
+            sendemail.content = "{}.{}目前运行正常：{}".format(url.domain, url.suffix,
+                                                        html.fromstring(res.content).xpath("//title/text()")[0])
+            sendemail.title = "{}.{}目前运行正常".format(url.domain, url.suffix)
+            print(sendemail.content)
+            save_log(sendemail.content)
+            sendemail.sendEmail()
+    except Exception as e:
+        print("check_website发生异常：{}".format(e))
+        save_log("check_website发生异常：{}".format(e))
+        time.sleep(10)
+        check_website(l)
+
 if __name__ == '__main__':
     sched_Timer = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, 0, 2) + \
                   timedelta(hours=1)
@@ -130,10 +134,7 @@ if __name__ == '__main__':
 
             try:
                 if mysql_result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
-                    if check_website(link):
-                        print(sendemail.content)
-                        save_log(sendemail.content)
-                        sendemail.sendEmail()
+                    check_website(link)
                 elif mysql_result:
                     print("目前mysql服务正常...")
                     save_log("目前mysql服务正常...")
@@ -141,7 +142,6 @@ if __name__ == '__main__':
                     # 重启mysql,如无效直接重启服务器
                     if not restart_mysql():
                         if not reboot_and_wdcp(): break
-                    sendemail.sendEmail()
             except Exception as e:
                 print("程序异常:{}".format(e))
                 save_log("程序异常:{}".format(e))
