@@ -12,31 +12,8 @@ activate
 cd E:\project\loganalyzer
 python check_paurl.py
 """
-"""原代码"""
 
-# sched_Timer=datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour + 1, 0, 2)
-# flag = True
-# while True:
-#     now_time = datetime.now()
-#     if now_time > sched_Timer:
-#         res = requests.get("http://www.paurl.com")
-#         if res.status_code != 200:
-#             sendemail.content = "{}发现以下问题：{}".format(res.url, res.text)
-#             sendemail.title = "paurl.com访问异常了"
-#             sendemail.sendEmail()
-#         elif now_time.hour in [9, 18, 14, 22] and res.status_code == 200 and flag:
-#         # elif res.status_code == 200:
-#             sendemail.content = "paurl.com目前运行正常：{}".format(html.fromstring(res.content).xpath("//title/text()")[0])
-#             sendemail.title = "paurl.com目前运行正常"
-#             sendemail.sendEmail()
-#             flag = False
-#
-#         sched_Timer += timedelta(minutes=15)
-#
-#         if sched_Timer.hour > now_time.hour:
-#             flag = True
-#
-#         time.sleep(840)
+
 link = "https://www.paurl.com"
 sendemail.content = ''
 sendemail.title = ''
@@ -61,9 +38,7 @@ def check_mysql(comm='systemctl status mysqld.service'):
         return False
 
 def restart_mysql(comm='systemctl restart mysqld.service'):
-    service_result = check_mysql()
-    if not service_result:
-        service_result = check_service(comm)
+    service_result = check_service(comm)
 
     suss_text = "mysql重启成功，正在正常运行"
     err_text = "mysql重启失败，没有正常运行"
