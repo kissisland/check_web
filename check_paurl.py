@@ -48,6 +48,7 @@ def save_log(logtext):
     with open('./log/{}_weblog.txt'.format(this_date), 'a', encoding='utf-8') as f:
         f.write(logtext + " " + this_date_time + "\n")
 
+# 对网站发起请求，然后通过网站反馈的状态码判断是否正常执行
 def check_website(l):
     try:
         res = requests.get(l)
@@ -67,6 +68,43 @@ def check_website(l):
         time.sleep(10)
         return check_website(l)
 
+
+def check_service(comm):
+    service_result = conn_linux.connected_linux(comm=comm)
+    return service_result
+
+def check_mysql(comm='systemctl status mysqld.service'):
+    service_result = check_service(comm=comm)
+    if 'running' in service_result:
+        return True
+    else:
+        return False
+
+def restart_mysql(comm='systemctl restart mysqld.service'):
+    service_result = check_mysql()
+    if not service_result:
+        check_service(comm)
+
+    if check_mysql():
+        print("mysql重启成功，正在正常运行")
+        save_log("mysql重启成功，正在正常运行")
+        return True
+    else:
+        print("mysql重启失败，没有正常运行")
+        save_log("mysql重启失败，没有正常运行")
+        return False
+
+def reboot_and_wdcp(comm='reboot'):
+    print("尝试重启服务器....")
+    save_log("尝试重启服务器....")
+    check_service(comm=comm)
+    time.sleep(30)
+
+    print("正在开启wdcp服务....")
+    save_log("正在开启wdcp服务....")
+    check_service(comm="sh /www/wdlinux/wdcp/wdcp.sh start")
+
+
 if __name__ == '__main__':
     sched_Timer = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, 0, 2) + \
                   timedelta(hours=1)
@@ -74,16 +112,17 @@ if __name__ == '__main__':
     while True:
         now_time = datetime.now()
         if now_time > sched_Timer:
-            result = check_website(link)
+            mysql_result = check_mysql()
+            web_result = check_website(link)
             try:
-                if result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
+                if mysql_result and web_result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
                     print(sendemail.content)
                     save_log(sendemail.content)
                     retries = True
                     sendemail.sendEmail()
                     save_log("邮件发送成功...")
 
-                elif result:
+                elif mysql_result and web_result:
                     retries = True
                     print(sendemail.content)
                     save_log(sendemail.content)
@@ -92,58 +131,30 @@ if __name__ == '__main__':
                     if retries:
                         sendemail.title += "，自动重启mysql"
 
-                        # 查看mysqld的状态，从而优化直接访问网站得知进程挂掉的问题
-                        mysqld_status = conn_linux.connected_linux(comm="systemctl status mysqld.service")
-                        sendemail.content = mysqld_status
-                        print(mysqld_status)
-                        save_log(mysqld_status)
-
-                        # 远程ssh重启mysql服务器
-                        conn_linux.connected_linux("service mysqld restart")
-
+                        # 重启mysql,如无效直接重启服务器
+                        if not restart_mysql():
+                            reboot_and_wdcp()
                         retries = False
 
-                        print(sendemail.title, "正在重启mysql....")
-                        save_log(sendemail.title + "正在重启mysql....")
+                        sendemail.sendEmail()
+                        save_log("邮件发送成功")
                     else:
-                        sendemail.title += "，重启mysql无效，重启服务器中"
-
-                        # 查看mysqld的状态，从而优化直接访问网站得知进程挂掉的问题
-                        mysqld_status = conn_linux.connected_linux(comm="systemctl status mysqld.service")
-                        sendemail.content = mysqld_status
-                        print(mysqld_status)
-                        save_log(mysqld_status)
-
-                        print("正在重启服务器....")
-                        save_log("正在重启服务器....")
-                        conn_linux.connected_linux("reboot")
-                        time.sleep(30)
-                        print("正在开启wdcp服务....")
-                        save_log("正在开启wdcp服务....")
-                        conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
-
-                        retries = True
-                    sendemail.sendEmail()
-                    save_log("邮件发送成功")
-
+                        print("重启服务器都不行，滚犊子了")
+                        save_log("重启服务器都不行，滚犊子了")
+                        sendemail.title = link + "重启服务器都不行，滚犊子了"
+                        sendemail.sendEmail()
+                        print("邮件发送成功")
+                        save_log("邮件发送成功")
+                        break
             except Exception as e:
                 print("程序异常:{}".format(e))
                 save_log("程序异常:{}".format(e))
-
                 sendemail.title = "程序异常了," + sendemail.title
                 sendemail.content = sendemail.content + "，{}".format(e)
                 sendemail.sendEmail()
-
-                print("正在重启服务器....")
-                save_log("正在重启服务器....")
-                conn_linux.connected_linux("reboot")
-                time.sleep(30)
-                print("正在开启wdcp服务....")
-                save_log("正在开启wdcp服务....")
-                conn_linux.connected_linux("sh /www/wdlinux/wdcp/wdcp.sh start")
+                reboot_and_wdcp()
             else:
-
-                sched_Timer += timedelta(minutes=3)
+                sched_Timer += timedelta(minutes=1)
                 time.sleep((sched_Timer - now_time).seconds)
         else:
             time.sleep((sched_Timer - now_time).seconds)
