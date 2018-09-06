@@ -141,16 +141,12 @@ if __name__ == '__main__':
                     # 重启mysql,如无效直接重启服务器
                     if not restart_mysql():
                         if not reboot_and_wdcp(): break
-
                     sendemail.sendEmail()
-
             except Exception as e:
                 print("程序异常:{}".format(e))
                 save_log("程序异常:{}".format(e))
-                sendemail.title = "程序异常了," + sendemail.title
-                sendemail.content = sendemail.content + "，{}".format(e)
-                sendemail.sendEmail()
-                reboot_and_wdcp()
+
+                if not reboot_and_wdcp(): break
             else:
                 sched_Timer += timedelta(minutes=1)
                 time.sleep((sched_Timer - now_time).seconds)
