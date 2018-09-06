@@ -83,12 +83,13 @@ def check_mysql(comm='systemctl status mysqld.service'):
 def restart_mysql(comm='systemctl restart mysqld.service'):
     service_result = check_mysql()
     if not service_result:
-        check_service(comm)
+        service_result = check_service(comm)
+
 
     suss_text = "mysql重启成功，正在正常运行"
     err_text = "mysql重启失败，没有正常运行"
 
-    if check_mysql():
+    if service_result:
         sendemail.title = link + "，" + suss_text
         print(suss_text)
         save_log(suss_text)
