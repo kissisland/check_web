@@ -131,7 +131,6 @@ if __name__ == '__main__':
         now_time = datetime.now()
         if now_time > sched_Timer:
             mysql_result = check_mysql()
-
             try:
                 if mysql_result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
                     check_website(link)
