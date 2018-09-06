@@ -113,17 +113,18 @@ if __name__ == '__main__':
         now_time = datetime.now()
         if now_time > sched_Timer:
             mysql_result = check_mysql()
-            web_result = check_website(link)
+
             try:
-                if mysql_result and web_result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
-                    print(sendemail.content)
-                    save_log(sendemail.content)
+                if mysql_result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
+                    if check_website(link):
+                        print(sendemail.content)
+                        save_log(sendemail.content)
+                        retries = True
+                        sendemail.sendEmail()
+                elif mysql_result:
                     retries = True
-                    sendemail.sendEmail()
-                elif mysql_result and web_result:
-                    retries = True
-                    print(sendemail.content)
-                    save_log(sendemail.content)
+                    print("目前mysql服务正常...")
+                    save_log("目前mysql服务正常...")
                 else:
 
                     if retries:
