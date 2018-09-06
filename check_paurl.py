@@ -85,13 +85,18 @@ def restart_mysql(comm='systemctl restart mysqld.service'):
     if not service_result:
         check_service(comm)
 
+    suss_text = "mysql重启成功，正在正常运行"
+    err_text = "mysql重启失败，没有正常运行"
+
     if check_mysql():
-        print("mysql重启成功，正在正常运行")
-        save_log("mysql重启成功，正在正常运行")
+        sendemail.title = link + "，" + suss_text
+        print(suss_text)
+        save_log(suss_text)
         return True
     else:
-        print("mysql重启失败，没有正常运行")
-        save_log("mysql重启失败，没有正常运行")
+        sendemail.title = link + "，" + err_text
+        print(err_text)
+        save_log(err_text)
         return False
 
 def reboot_and_wdcp(comm='reboot'):
@@ -103,12 +108,20 @@ def reboot_and_wdcp(comm='reboot'):
     print("正在开启wdcp服务....")
     save_log("正在开启wdcp服务....")
     check_service(comm="sh /www/wdlinux/wdcp/wdcp.sh start")
+    time.sleep(3)
 
+    if not check_mysql():
+        print("重启服务器都不行，滚犊子了")
+        save_log("重启服务器都不行，滚犊子了")
+        sendemail.title = link + "重启服务器都不行，滚犊子了"
+        sendemail.sendEmail()
+        return False
+    else:
+        return True
 
 if __name__ == '__main__':
     sched_Timer = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, 0, 2) + \
                   timedelta(hours=1)
-    retries = True
     while True:
         now_time = datetime.now()
         if now_time > sched_Timer:
@@ -119,29 +132,17 @@ if __name__ == '__main__':
                     if check_website(link):
                         print(sendemail.content)
                         save_log(sendemail.content)
-                        retries = True
                         sendemail.sendEmail()
                 elif mysql_result:
-                    retries = True
                     print("目前mysql服务正常...")
                     save_log("目前mysql服务正常...")
                 else:
+                    # 重启mysql,如无效直接重启服务器
+                    if not restart_mysql():
+                        if not reboot_and_wdcp(): break
 
-                    if retries:
-                        # 重启mysql,如无效直接重启服务器
-                        if not restart_mysql():
-                            reboot_and_wdcp()
-                            sendemail.title += "，重启mysql失败，重启服务器成功"
-                        else:
-                            sendemail.title += "，自动重启mysql成功"
-                        retries = False
-                        sendemail.sendEmail()
-                    else:
-                        print("重启服务器都不行，滚犊子了")
-                        save_log("重启服务器都不行，滚犊子了")
-                        sendemail.title = link + "重启服务器都不行，滚犊子了"
-                        sendemail.sendEmail()
-                        break
+                    sendemail.sendEmail()
+
             except Exception as e:
                 print("程序异常:{}".format(e))
                 save_log("程序异常:{}".format(e))
