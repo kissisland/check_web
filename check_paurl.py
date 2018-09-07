@@ -41,20 +41,17 @@ def restart_mysql(comm='systemctl restart mysqld.service'):
     save_log("mysql服务挂了，正在重试....")
     service_result, service_log = check_mysql(comm)
 
-    suss_text = "mysql重启成功，正在正常运行"
-    err_text = "mysql重启失败，没有正常运行"
-
     if service_result:
-        print(suss_text)
-        save_log(suss_text)
-        sendemail.title = link + "，" + suss_text
+        print("mysql重启成功，正在正常运行")
+        save_log("mysql重启成功，正在正常运行")
+        sendemail.title = link + "，" + "mysql重启成功，正在正常运行"
         sendemail.content = service_log
         sendemail.sendEmail()
         return True
     else:
-        print(err_text)
-        save_log(err_text)
-        sendemail.title = link + "，" + err_text
+        print("mysql重启失败，没有正常运行")
+        save_log("mysql重启失败，没有正常运行")
+        sendemail.title = link + "，" + "mysql重启失败，没有正常运行"
         sendemail.content = service_log
         sendemail.sendEmail()
         return False
