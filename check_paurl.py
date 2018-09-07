@@ -1,11 +1,10 @@
 import sendemail
 import requests, time
-from datetime import datetime,timedelta
+from datetime import timedelta
 from lxml import html
 import tldextract
-import conn_linux
+import control_linux
 from datetime import datetime
-
 """
 cd E:\env\py3scrapy\Scripts
 activate
@@ -27,18 +26,20 @@ def save_log(logtext):
 
 
 def check_service(comm):
-    service_result = conn_linux.connected_linux(comm=comm)
+    service_result = control_linux.connected_linux(comm=comm)
     return service_result
 
 def check_mysql(comm='systemctl status mysqld.service'):
     service_result = check_service(comm=comm)
     if 'running' in service_result:
-        return True
+        return True, service_result
     else:
-        return False
+        return False, service_result
 
 def restart_mysql(comm='systemctl restart mysqld.service'):
-    service_result = check_service(comm)
+    print("mysql服务挂了，正在重试....")
+    save_log("mysql服务挂了，正在重试....")
+    service_result, service_log = check_mysql(comm)
 
     suss_text = "mysql重启成功，正在正常运行"
     err_text = "mysql重启失败，没有正常运行"
@@ -47,12 +48,14 @@ def restart_mysql(comm='systemctl restart mysqld.service'):
         print(suss_text)
         save_log(suss_text)
         sendemail.title = link + "，" + suss_text
+        sendemail.content = service_log
         sendemail.sendEmail()
         return True
     else:
         print(err_text)
         save_log(err_text)
         sendemail.title = link + "，" + err_text
+        sendemail.content = service_log
         sendemail.sendEmail()
         return False
 
@@ -71,6 +74,7 @@ def reboot_and_wdcp(comm='reboot'):
         print("重启服务器都不行，滚犊子了")
         save_log("重启服务器都不行，滚犊子了")
         sendemail.title = link + "重启服务器都不行，滚犊子了"
+        sendemail.content = ""
         sendemail.sendEmail()
         return False
     else:
