@@ -124,7 +124,8 @@ if __name__ == '__main__':
                 if not reboot_and_wdcp(): break
             else:
                 sched_Timer += timedelta(minutes=1)
-                time.sleep((sched_Timer - now_time).seconds)
+                if sched_Timer > now_time:
+                    time.sleep((sched_Timer - now_time).seconds)
         else:
             time.sleep((sched_Timer - now_time).seconds)
 
