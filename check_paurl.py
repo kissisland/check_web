@@ -39,7 +39,8 @@ def check_mysql(comm='systemctl status mysqld.service'):
 def restart_mysql(comm='systemctl restart mysqld.service'):
     print("mysql服务挂了，正在重试....")
     save_log("mysql服务挂了，正在重试....")
-    service_result, service_log = check_mysql(comm)
+    check_service(comm=comm)
+    service_result, service_log = check_mysql()
 
     if service_result:
         print("mysql重启成功，正在正常运行")
@@ -102,7 +103,6 @@ def check_website(l):
         check_website(l)
 
 if __name__ == '__main__':
-
     sched_Timer = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, 0, 2) + \
                   timedelta(hours=1)
     while True:
