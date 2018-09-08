@@ -86,7 +86,8 @@ def check_website(l):
             sendemail.content = "{}.{}发现以下问题：{}".format(url.domain, url.suffix, res.text)
             sendemail.title = "{}.{}访问异常了".format(url.domain, url.suffix)
 
-            restart_mysql()
+            if not restart_mysql()[0]: reboot_and_wdcp()
+
         elif res.status_code == 200:
             sendemail.content = "{}.{}目前运行正常：{}".format(url.domain, url.suffix,
                                                         html.fromstring(res.content).xpath("//title/text()")[0])
