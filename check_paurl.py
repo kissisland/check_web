@@ -101,6 +101,7 @@ def check_website(l):
         check_website(l)
 
 if __name__ == '__main__':
+
     sched_Timer = datetime(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, 0, 2) + \
                   timedelta(hours=1)
     while True:
@@ -110,7 +111,7 @@ if __name__ == '__main__':
             try:
                 if mysql_result and now_time.minute == 0 and now_time.hour in [9, 14, 18, 22]:
                     check_website(link)
-                elif mysql_result:
+                elif mysql_result[0]:
                     print("目前mysql服务正常...")
                     save_log("目前mysql服务正常...")
                 else:
