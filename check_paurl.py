@@ -116,7 +116,7 @@ if __name__ == '__main__':
                     save_log("目前mysql服务正常...")
                 else:
                     # 重启mysql,如无效直接重启服务器
-                    if not restart_mysql():
+                    if not restart_mysql()[0]:
                         if not reboot_and_wdcp(): break
             except Exception as e:
                 print("程序异常:{}".format(e))
