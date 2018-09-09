@@ -87,7 +87,7 @@ def check_website(l):
             sendemail.content = "{}.{}发现以下问题：{}".format(url.domain, url.suffix, res.text)
             sendemail.title = "{}.{}访问异常了".format(url.domain, url.suffix)
 
-            if not restart_mysql()[0]: reboot_and_wdcp()
+            if not restart_mysql(): reboot_and_wdcp()
 
         elif res.status_code == 200:
             sendemail.content = "{}.{}目前运行正常：{}".format(url.domain, url.suffix,
@@ -117,7 +117,7 @@ if __name__ == '__main__':
                     save_log("目前mysql服务正常...")
                 else:
                     # 重启mysql,如无效直接重启服务器
-                    if not restart_mysql()[0]:
+                    if not restart_mysql():
                         if not reboot_and_wdcp(): break
             except Exception as e:
                 print("程序异常:{}".format(e))
