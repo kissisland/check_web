@@ -52,9 +52,9 @@ def restart_mysql(comm='systemctl restart mysqld.service'):
     else:
         print("mysql重启失败")
         save_log("mysql重启失败")
-        sendemail.title = link + "，" + "mysql重启失败"
-        sendemail.content = service_log
-        sendemail.sendEmail()
+        # sendemail.title = link + "，" + "mysql重启失败"
+        # sendemail.content = service_log
+        # sendemail.sendEmail()
         return False
 
 def reboot_and_wdcp(comm='reboot'):
