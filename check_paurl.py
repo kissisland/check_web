@@ -50,9 +50,9 @@ def restart_mysql(comm='systemctl restart mysqld.service'):
         sendemail.sendEmail()
         return True
     else:
-        print("mysql重启失败，没有正常运行")
-        save_log("mysql重启失败，没有正常运行")
-        sendemail.title = link + "，" + "mysql重启失败，没有正常运行"
+        print("mysql重启失败")
+        save_log("mysql重启失败")
+        sendemail.title = link + "，" + "mysql重启失败"
         sendemail.content = service_log
         sendemail.sendEmail()
         return False
@@ -68,7 +68,7 @@ def reboot_and_wdcp(comm='reboot'):
     check_service(comm="sh /www/wdlinux/wdcp/wdcp.sh start")
     time.sleep(3)
 
-    if not check_mysql():
+    if not check_mysql()[0]:
         print("重启服务器都不行，滚犊子了")
         save_log("重启服务器都不行，滚犊子了")
         sendemail.title = link + "重启服务器都不行，滚犊子了"
@@ -76,7 +76,14 @@ def reboot_and_wdcp(comm='reboot'):
         sendemail.sendEmail()
         return False
     else:
+        print(link + "重启服务器成功")
+        save_log(link + "重启服务器成功")
+        sendemail.title = link + "重启服务器成功"
+        sendemail.content = ""
+        sendemail.sendEmail()
         return True
+
+
 
 # 对网站发起请求，然后通过网站反馈的状态码判断是否正常执行
 def check_website(l):
