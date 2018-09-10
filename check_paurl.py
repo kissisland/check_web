@@ -68,18 +68,22 @@ def reboot_and_wdcp(comm='reboot'):
     check_service(comm="sh /www/wdlinux/wdcp/wdcp.sh start")
     time.sleep(3)
 
-    if not check_mysql()[0]:
+    result,result_msg = check_mysql()
+    result_msg = 'result_msg为空' if result_msg == '' else result_msg
+
+
+    if not result:
         print("重启服务器都不行，滚犊子了")
-        save_log("重启服务器都不行，滚犊子了")
+        save_log(link + "重启服务器都不行，滚犊子了" + result_msg)
         sendemail.title = link + "重启服务器都不行，滚犊子了"
-        sendemail.content = ""
+        sendemail.content = result_msg
         sendemail.sendEmail()
         return False
     else:
         print(link + "重启服务器成功")
-        save_log(link + "重启服务器成功")
+        save_log(link + "重启服务器成功" + result_msg)
         sendemail.title = link + "重启服务器成功"
-        sendemail.content = ""
+        sendemail.content = result_msg
         sendemail.sendEmail()
         return True
 
