@@ -75,13 +75,13 @@ def reboot_and_wdcp(comm='reboot'):
     if not result:
         print("重启服务器都不行，滚犊子了")
         save_log(link + "重启服务器都不行，滚犊子了" + result_msg)
-        sendemail.title = link + "重启服务器都不行，滚犊子了"
+        sendemail.title = link + "，重启服务器都不行，滚犊子了"
         sendemail.content = result_msg
         sendemail.sendEmail()
         return False
     else:
         print(link + "重启服务器成功")
-        save_log(link + "重启服务器成功" + result_msg)
+        save_log(link + "，重启服务器成功" + result_msg)
         sendemail.title = link + "重启服务器成功"
         sendemail.content = result_msg
         sendemail.sendEmail()
