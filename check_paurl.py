@@ -31,6 +31,9 @@ def check_service(comm):
 
 def check_mysql(comm='systemctl status mysqld.service'):
     service_result = check_service(comm=comm)
+    if service_result == '':
+        service_result = "check_service返回空值"
+
     if 'running' in service_result:
         return True, service_result
     else:
@@ -66,10 +69,9 @@ def reboot_and_wdcp(comm='reboot'):
     print("正在开启wdcp服务....")
     save_log("正在开启wdcp服务....")
     check_service(comm="sh /www/wdlinux/wdcp/wdcp.sh start")
-    time.sleep(3)
+    time.sleep(10)
 
     result,result_msg = check_mysql()
-    result_msg = 'result_msg为空' if result_msg == '' else result_msg
 
 
     if not result:
