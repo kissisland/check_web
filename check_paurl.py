@@ -69,7 +69,7 @@ def reboot_and_wdcp(comm='reboot'):
     print("正在开启wdcp服务....")
     save_log("正在开启wdcp服务....")
     check_service(comm="sh /www/wdlinux/wdcp/wdcp.sh start")
-    time.sleep(10)
+    time.sleep(30)
 
     result,result_msg = check_mysql()
 
