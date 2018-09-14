@@ -75,12 +75,17 @@ def reboot_and_wdcp(comm='reboot'):
 
 
     if not result:
-        print("重启服务器都不行，滚犊子了")
-        save_log(link + "重启服务器都不行，滚犊子了" + result_msg)
-        sendemail.title = link + "，重启服务器都不行，滚犊子了"
+        print("重启服务器都不行，再次check mysql")
+        save_log(link + "重启服务器都不行，再次check mysql" + result_msg)
+        sendemail.title = link + "，重启服务器都不行，再次check mysql"
         sendemail.content = result_msg
         sendemail.sendEmail()
-        return False
+        time.sleep(50)
+        result, result_msg = check_mysql()
+        if result:
+            return True
+        else:
+            return reboot_and_wdcp()
     else:
         print(link + "重启服务器成功")
         save_log(link + "，重启服务器成功" + result_msg)
@@ -131,12 +136,12 @@ if __name__ == '__main__':
                 else:
                     # 重启mysql,如无效直接重启服务器
                     if not restart_mysql():
-                        if not reboot_and_wdcp(): break
+                        reboot_and_wdcp()
             except Exception as e:
                 print("程序异常:{}".format(e))
                 save_log("程序异常:{}".format(e))
 
-                if not reboot_and_wdcp(): break
+                reboot_and_wdcp()
             else:
                 sched_Timer += timedelta(minutes=1)
                 if sched_Timer > now_time:
